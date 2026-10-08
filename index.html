@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FluxVid — Universal Media Downloader</title>
+  <meta name="description" content="Download media from supported public sources with FluxVid. Built for high performance and sleek liquid-glass experience.">
+  <meta name="theme-color" content="#06080F">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Fullscreen Liquid Glass Intro Screen -->
+  <div id="intro-overlay" class="intro-overlay">
+    <div class="intro-backdrop-glow"></div>
+    <div class="intro-content">
+      <div id="stage-fluxvid" class="intro-stage active">
+        <h1 class="intro-logo-text">FLUXVID</h1>
+        <p class="intro-subtext">Universal Media Architecture</p>
+      </div>
+      <div id="stage-creator" class="intro-stage">
+        <span class="creator-label">Created By</span>
+        <h2 class="creator-name">Shiv Yogi</h2>
+        <div class="creator-accent-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Wrapper -->
+  <div id="app" class="app-container hidden">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <img src="assets/logo.svg" alt="FluxVid Logo" class="brand-logo" width="36" height="36">
+        <span class="brand-title">FluxVid</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <!-- Hero / Input Section -->
+      <section class="hero-section">
+        <h2 class="hero-title">FluxVid</h2>
+        <p class="hero-desc">Download videos and audio from supported sources.</p>
+
+        <form id="url-form" class="url-card glass-panel" onsubmit="return false;">
+          <div class="input-wrapper">
+            <img src="assets/icons/link.svg" alt="" class="field-icon" aria-hidden="true">
+            <input 
+              type="url" 
+              id="media-url-input" 
+              class="url-input" 
+              placeholder="Paste video or audio URL..." 
+              required
+              autocomplete="off"
+              spellcheck="false"
+              aria-label="Video or audio media URL"
+            >
+            <button type="button" id="paste-btn" class="glass-action-btn" aria-label="Paste URL from clipboard">
+              <img src="assets/icons/paste.svg" alt="" class="btn-icon icon-paste" aria-hidden="true">
+              <img src="assets/icons/check.svg" alt="" class="btn-icon icon-check hidden" aria-hidden="true">
+            </button>
+          </div>
+
+          <button type="submit" id="analyze-btn" class="primary-glass-btn" aria-label="Analyze URL">
+            <img src="assets/icons/search.svg" alt="" class="btn-icon" aria-hidden="true">
+            <span class="btn-text">Analyze</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Processing / Loading State -->
+      <section id="state-loading" class="state-card glass-panel hidden" aria-live="polite">
+        <div class="spinner-disc"></div>
+        <p class="state-heading">Analyzing media</p>
+        <p class="state-detail">Extracting formats and parameters from source...</p>
+      </section>
+
+      <!-- Error State Card -->
+      <section id="state-error" class="state-card glass-panel error-panel hidden" aria-live="assertive">
+        <div class="error-icon-box">
+          <img src="assets/icons/error.svg" alt="" class="state-icon" aria-hidden="true">
+        </div>
+        <h3 id="error-title" class="state-heading">Unable to process this URL</h3>
+        <p id="error-message" class="state-detail">The source may be unsupported, private, DRM-protected, restricted, or temporarily unavailable.</p>
+        <button type="button" id="error-retry-btn" class="secondary-glass-btn">
+          <img src="assets/icons/back.svg" alt="" class="btn-icon" aria-hidden="true">
+          <span>Try Another URL</span>
+        </button>
+      </section>
+
+      <!-- Media Result Dashboard Card -->
+      <section id="media-card" class="media-card glass-panel hidden">
+        <div class="media-preview-container">
+          <img id="media-thumb" src="" alt="Thumbnail" class="media-thumbnail">
+          <div class="media-overlay-badge">
+            <img src="assets/icons/video.svg" id="type-badge-icon" alt="" class="badge-icon">
+            <span id="media-duration-badge" class="badge-text">--:--</span>
+          </div>
+        </div>
+
+        <div class="media-details">
+          <h3 id="media-title" class="media-title">Video Title</h3>
+          
+          <div class="media-meta-row">
+            <div class="meta-item">
+              <img src="assets/icons/clock.svg" alt="" class="meta-icon" aria-hidden="true">
+              <span id="media-duration-text">00:00</span>
+            </div>
+            <div class="meta-item">
+              <img src="assets/icons/info.svg" alt="" class="meta-icon" aria-hidden="true">
+              <span id="media-source-text">Public Source</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video / Audio Switcher Tabs -->
+        <div class="tab-switch-container">
+          <div class="tab-indicator" id="tab-indicator"></div>
+          <button type="button" id="tab-video" class="tab-button active">
+            <img src="assets/icons/video.svg" alt="" class="tab-icon" aria-hidden="true">
+            <span>Video</span>
+          </button>
+          <button type="button" id="tab-audio" class="tab-button">
+            <img src="assets/icons/audio.svg" alt="" class="tab-icon" aria-hidden="true">
+            <span>Audio</span>
+          </button>
+        </div>
+
+        <!-- Quality Selector Direct View -->
+        <div class="quality-selector-wrap">
+          <div class="quality-header">
+            <img src="assets/icons/quality.svg" alt="" class="section-icon" aria-hidden="true">
+            <span>Available Formats</span>
+          </div>
+          <div id="quality-chips-grid" class="quality-chips-grid">
+            <!-- Dynamically populated from actual formats -->
+          </div>
+        </div>
+
+        <!-- Download Action Module -->
+        <div class="action-module">
+          <button type="button" id="download-trigger-btn" class="download-cta-btn">
+            <div class="btn-inner">
+              <img src="assets/icons/download.svg" alt="" id="cta-icon" class="btn-icon" aria-hidden="true">
+              <span id="cta-label">Download</span>
+            </div>
+            <div class="progress-bar-fill" id="cta-progress-bar"></div>
+          </button>
+        </div>
+
+        <!-- Success Feedback Banner -->
+        <div id="download-success-banner" class="success-banner hidden">
+          <img src="assets/icons/check.svg" alt="" class="success-icon" aria-hidden="true">
+          <div class="success-info">
+            <span class="success-title">Download complete</span>
+            <span id="success-filename" class="success-filename">filename.mp4</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Local Device Download History -->
+      <section class="history-section glass-panel">
+        <div class="section-title-row">
+          <div class="title-with-icon">
+            <img src="assets/icons/history.svg" alt="" class="section-icon" aria-hidden="true">
+            <h3>Recent Downloads</h3>
+          </div>
+          <button type="button" id="clear-history-btn" class="link-action-btn">Clear</button>
+        </div>
+        <div id="history-list" class="history-list">
+          <p class="history-empty">No downloads yet on this device.</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Subtle Footer Branding -->
+    <footer class="app-footer">
+      <p class="footer-credit">FluxVid &bull; Created By Shiv Yogi</p>
+      <p class="footer-legal">For supported public media only. Please respect creator rights.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
